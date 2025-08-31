@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -12,7 +14,7 @@ public:
 	string task;
 	bool status;
 
-	Task( string aTask){
+	Task( string &aTask){
 		task = aTask;
 		task_id = id;
 		status = false;
@@ -26,9 +28,9 @@ public:
 	void print(){
 		string status_text;
 		if (status){
-			status_text = "task completed";
+			status_text = "✅";
 		} else {
-			status_text = "pending task";
+			status_text = "⏳";
 		};
 		cout << task_id << ": " << task << ": " << status_text << endl;
 	}
@@ -52,8 +54,9 @@ class Todo {
 			} else if (order == 't') {
 				toggleTask();
 			} else if (order == 'r') {
-				cout << "incoming feature" << endl;
 				removeTask();
+                updateIndex();
+                getItems();
 			} else if (order == 'v') {
 				getItems();
 			} else if (order == 'q') {
@@ -69,8 +72,11 @@ class Todo {
 	public:
 		Todo(string new_title){
 			title = new_title;
-			tasks.push_back(Task("New task class created"));
 		};
+
+        void addTask(string &task){
+            tasks.push_back(Task(task));
+        }
 
 		void getItems(){
 
@@ -104,13 +110,16 @@ class Todo {
 
 			getline(cin, new_task);
 
-			tasks.push_back( Task( new_task ));
+            addTask(new_task);
 			cout << "Added new task, enter 'v' to view your tasks!" << endl;
 		}
 
 		void removeTask() {
 			int index;
+            printf("Enter the index number for the task to be removed: ");
 			cin >> index;
+            cout << "The task of id: " << index << " shall be removed." << endl;
+            tasks.erase(tasks.begin() + index);
 		}
 
 		void toggleTask() {
@@ -118,11 +127,22 @@ class Todo {
 			cout << "Specify the index of the item you want to toggle:  ";
 			cin >> index;
 			toggleItemStatus(index);
+            getItems();
 		}
+
+        void updateIndex(){
+            for (int i=0; i < tasks.size(); i++){
+                // update the indices of the vector items
+                tasks[i].task_id = i;
+            }
+            // update the static variable 'id' instance
+            vector<Task>::iterator lastItem = tasks.end() - 1; // get last item of vector
+            Task::id = lastItem->task_id + 1; // assign last item's index to the static var
+    }
 
 };
 
-
+// initialize static variable
 int Task::id = 0;
 
 int main(){

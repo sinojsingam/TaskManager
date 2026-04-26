@@ -1,4 +1,4 @@
-Manage your tasks
+Manage your tasks all in one app.
 
 This is a simple CLI-based app for creating and keeping track of your most important tasks.
 

@@ -22,6 +22,10 @@ public:
         status = aStatus;
     }
 
+    void editTaskText(string &new_task_string){
+	    task = new_task_string;
+    }
+
     void toggleStatus(){
         status = !status;
     }
@@ -63,19 +67,22 @@ private:
 
     void giveOrder(){
         char order;
-        cout << "\nWhat would you like to do?\n[a]dd task, [r]emove a task, [t]oggle status, [v]iew all tasks, [q]uit: ";
+        cout << "\nWhat would you like to do?\n[a]dd task, [e]dit task, [r]emove a task, [t]oggle status, [v]iew all tasks, [q]uit: ";
         cin >> order;
         // clear the line before passing 
         //  in to cin
         cin.ignore();
         if (order == 'a'){
-            addTask();
+            addTaskRequest();
             getItems();
         } else if (order == 't') {
-            toggleTask();
+            toggleTaskRequest();
+            getItems();
+        } else if (order == 'e') {
+            editTaskRequest();
             getItems();
         } else if (order == 'r') {
-            removeTask();
+            removeTaskRequest();
             updateIndex();
             getItems();
         } else if (order == 'v') {
@@ -152,6 +159,19 @@ public:
         tasks.push_back(Task(id, task, status));
     }
 
+    void editTask(int task_ix){
+	Task& task = getTaskByIndex(task_ix);
+	cout << "Current Task: " << task.task << endl;
+	cout << "Enter new task (or press Enter to keep current): ";
+	string new_task;
+	getline(cin >> ws, new_task);
+	cout << "TEST " << new_task << endl;
+	if (!new_task.empty()) {
+	    task.editTaskText(new_task);
+	}
+	cout << "Updated Task: " << task.task << endl;
+    }
+
     void getItems(){
 
         cout << "--- Your tasks are ---" << endl;
@@ -163,12 +183,17 @@ public:
     }
 
     void toggleItemStatus(int itemIx){
-        for (int i = 0; i < tasks.size(); i++){
-            if (itemIx == i){
-                tasks[i].toggleStatus();
-            };
-        }
+	Task& task = getTaskByIndex(itemIx);
+	task.toggleStatus();
         cout << "Toggling item of index " << itemIx <<"'s status" << endl;
+    }
+
+    Task& getTaskByIndex(int index){
+	Task task = tasks[0];
+	if (index < 0 || index >= tasks.size()) {
+        throw out_of_range("Index out of bounds");
+    	}
+	return tasks[index];
     }
 
     void runTaskApp(){
@@ -178,14 +203,14 @@ public:
             loadFile();
             isFileLoadedOnce = true; // don't load again
             updateIndex();
-            cout << longString;
+            cout << longString << endl;
             getItems();
         }
         giveOrder();
         runTaskApp();
     }
 
-    void addTask(){
+    void addTaskRequest(){
         string new_task;
         cout << "Add a new task: ";
 
@@ -196,7 +221,17 @@ public:
         cout << "Added new task, enter 'v' to view your tasks!" << endl;
     }
 
-    void removeTask() {
+    void editTaskRequest() {
+        int index;
+        printf("Enter the index number for the task to be edited: ");
+        cin >> index;
+        cout << "The task of id: " << index << " shall be edited." << endl;
+	if (index)  {
+	 editTask(index);
+    }
+    }
+
+    void removeTaskRequest() {
         int index;
         printf("Enter the index number for the task to be removed: ");
         cin >> index;
@@ -204,7 +239,7 @@ public:
         tasks.erase(tasks.begin() + index);
     }
 
-    void toggleTask() {
+    void toggleTaskRequest() {
         int index;
         cout << "Specify the index of the item you want to toggle:  ";
         cin >> index;

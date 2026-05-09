@@ -4,14 +4,20 @@
 
 int main() {
 
-  /* Init oatpp Environment */
-  oatpp::Environment::init();
+  // /* Init oatpp Environment */
+  // oatpp::Environment::init();
+  //
+  // /* Run App */
+  // apiMod::run();
+  //
+  // /* Destroy oatpp Environment */
+  // oatpp::Environment::destroy();
 
-  /* Run App */
-  apiMod::run();
+  taskMod::Todo todo_list("new_list");
 
-  /* Destroy oatpp Environment */
-  oatpp::Environment::destroy();
+  while (true){
+      todo_list.runTaskApp();
+  }
 
   return 0;
 

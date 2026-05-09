@@ -13,38 +13,53 @@
 namespace taskMod {
 
     Task::Task(int aTaskId, std::string &aTask, bool aStatus){
-        task = aTask;
-        task_id = aTaskId;
-        status = aStatus;
+        m_task = aTask;
+        m_task_id = aTaskId;
+        m_status = aStatus;
 
     };
 
     void Task::editTaskText(std::string &new_task_string){
-        task = new_task_string;
+        m_task = new_task_string;
     };
 
     void Task::toggleStatus(){
-        status = !status;
+        m_status = !m_status;
     };
 
     std::string Task::toCSVFormat(){
-        return std::to_string(task_id) + ',' + task + ',' + std::to_string(status) + "\n";
+        return std::to_string(m_task_id) + ',' + m_task + ',' + std::to_string(m_status) + "\n";
     }
 
     void Task::print(){
         std::string status_text;
-        if (status){
+        if (m_status){
             status_text = "✅";
         } else {
             status_text = "⏳";
         };
-        std::cout << task_id << ": " << task << ": " << status_text << std::endl;
+        std::cout << m_task_id << ": " << m_task << ": " << status_text << std::endl;
     }
 
     Todo::Todo(std::string new_title){
         // constructor
-        title = new_title;
-        isFileLoadedOnce = false;
+        m_title = new_title;
+        m_dataFileName = m_title + ".csv";
+        m_isFileLoadedOnce = false;
+        if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
+            // only load once for the lifecycle of the app
+            std::cout << "Loading data from "<< m_dataFileName << ".csv..." << std::endl;
+            loadFile();
+            m_isFileLoadedOnce = true; // don't load again
+            updateIndex();
+            std::cout << "Loaded data..." << std::endl;
+        }
+    }
+
+    Todo::~Todo(){
+        std::cout << "writing to file "<< m_dataFileName << ".csv" << std::endl;
+        saveFile();
+
     }
 
     void Todo::giveOrder(){
@@ -80,9 +95,9 @@ namespace taskMod {
     };
 
     void Todo::saveFile(){
-        std::ofstream DataFile(Todo::dataFileName);
-        for (int i=0; i < tasks.size(); i++ ){
-            DataFile << tasks[i].toCSVFormat();
+        std::ofstream DataFile(m_dataFileName);
+        for (int i=0; i < m_tasks.size(); i++ ){
+            DataFile << m_tasks[i].toCSVFormat();
         }
         DataFile.close();
         std::cout << "Saved successfully!" << std::endl;
@@ -97,7 +112,7 @@ namespace taskMod {
         std::string splitTextArray[3]; // array to store split text
         int i =0; // index to store in array
 
-        std::ifstream LoadedDataFile(Todo::dataFileName);
+        std::ifstream LoadedDataFile(m_dataFileName);
         std::string splitString; // temporarary split string
         bool tempBool;
 
@@ -127,12 +142,13 @@ namespace taskMod {
     }
 
     void Todo::addTask( int id, std::string &task, bool status ){
-        tasks.push_back(Task(id, task, status));
+        m_tasks.push_back(Task(id, task, status));
+        updateIndex();
     }
 
     void Todo::editTask(int task_ix){
         Task& task = getTaskByIndex(task_ix);
-        std::cout << "Current Task: " << task.task << std::endl;
+        std::cout << "Current Task: " << task.m_task << std::endl;
         std::cout << "Enter new task (or press Enter to keep current): ";
         std::string new_task;
         getline(std::cin >> std::ws, new_task);
@@ -142,15 +158,15 @@ namespace taskMod {
             task.editTaskText(new_task);
         }
 
-        std::cout << "Updated Task: " << task.task << std::endl;
+        std::cout << "Updated Task: " << task.m_task << std::endl;
     }
 
     void Todo::getItems(){
 
         std::cout << "--- Your tasks are ---" << std::endl;
 
-        for(int i = 0; i < tasks.size(); i++){
-            tasks[i].print();
+        for(int i = 0; i < m_tasks.size(); i++){
+            m_tasks[i].print();
         }
         std::cout << "------" << std::endl;
     }
@@ -162,18 +178,18 @@ namespace taskMod {
     }
 
     Task& Todo::getTaskByIndex(int index){
-        Task task = tasks[0];
-        if (index < 0 || index >= tasks.size()) {
+        Task task = m_tasks[0];
+        if (index < 0 || index >= m_tasks.size()) {
             throw std::out_of_range("Index out of bounds");
         }
-        return tasks[index];
+        return m_tasks[index];
     }
     void Todo::runTaskApp(){
-        if (is_file_exist(Todo::dataFileName) && !isFileLoadedOnce){
+        if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
             // only load once for the lifecycle of the app
             std::cout << "Loading data..." << std::endl;
             loadFile();
-            isFileLoadedOnce = true; // don't load again
+            m_isFileLoadedOnce = true; // don't load again
             updateIndex();
             // std::cout << longString << std::endl;
             getItems();
@@ -188,10 +204,25 @@ namespace taskMod {
 
         getline(std::cin, new_task);
 
-        addTask(Todo::autoID, new_task, false);
-        Todo::autoID++; // increment auto id
+        addTask(m_autoID, new_task, false);
+        m_autoID++; // increment auto id
         std::cout << "Added new task, enter 'v' to view your tasks!" << std::endl;
     }
+
+    void Todo::editTaskApi(int task_index, std::string &new_task){
+        if (task_index > 0)  {
+            Task& task = getTaskByIndex(task_index);
+            if (!new_task.empty()) {
+                    task.editTaskText(new_task);
+            }
+        }
+    };
+
+    void Todo::addTaskApi(std::string &task){
+        addTask(m_autoID, task, false);
+        m_autoID++; // increment auto id
+        updateIndex();
+    };
 
     void Todo::editTaskRequest() {
         int index;
@@ -204,12 +235,31 @@ namespace taskMod {
         }
     }
 
+    void Todo::removeTaskApi(int task_index){
+        m_tasks.erase(m_tasks.begin() + task_index);
+    };
+
+    void Todo::toggleTaskApi(int task_index){
+        toggleItemStatus(task_index);
+    };
+
+    std::vector<Task> Todo::viewTasks(int task_index){
+        std::vector<Task> single_task;
+        if (task_index > 0){
+            Task& task = getTaskByIndex(task_index);
+            single_task.push_back(Task(task.m_task_id, task.m_task, task.m_status));
+            return single_task;
+        }
+        return m_tasks;
+    };
+
+
     void Todo::removeTaskRequest() {
         int index;
         printf("Enter the index number for the task to be removed: ");
         std::cin >> index;
         std::cout << "The task of id: " << index << " shall be removed." << std::endl;
-        tasks.erase(tasks.begin() + index);
+        m_tasks.erase(m_tasks.begin() + index);
     }
 
     void Todo::toggleTaskRequest() {
@@ -221,19 +271,18 @@ namespace taskMod {
     }
 
     void Todo::updateIndex(){
-        for (int i=0; i < tasks.size(); i++){
+        for (int i=0; i < m_tasks.size(); i++){
             // update the indices of the vector items
-            tasks[i].task_id = i;
+            m_tasks[i].m_task_id = i;
         }
 
         // update the static variable 'id' instance
         // get last item of vector
-        std::vector<Task>::iterator lastItem = tasks.end() - 1; 
+        std::vector<Task>::iterator lastItem = m_tasks.end() - 1; 
         // assign last item's index to the static var
-        Todo::autoID = lastItem->task_id + 1;
+        m_autoID = lastItem->m_task_id + 1;
     }
 
-    int Todo::autoID = 0;
-    std::string Todo::dataFileName = "tasksdata.csv";
+    int Todo::m_autoID = 0;
 
 }

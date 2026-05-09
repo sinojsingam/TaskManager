@@ -1,30 +1,34 @@
 #pragma once
 
-
-// class mod1c1{
-// public:
-//    void foo();
-// };
-#include "oatpp/web/server/HttpConnectionHandler.hpp"
-#include "oatpp/Environment.hpp"
-#include "oatpp/network/Server.hpp"
-#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
+#include "oatpp/web/server/HttpRequestHandler.hpp"
+#include "oatpp/json/ObjectMapper.hpp"
+#include "task_logic/task_manager.hpp"
 
 namespace apiMod {
-/** 
- * Custom Request Handler
- */
+    /** 
+     * Custom Request Handler
+     */
 
-class Handler : public oatpp::web::server::HttpRequestHandler {
+    class Handler : public oatpp::web::server::HttpRequestHandler {
 
-public:
-  /**
-   * Handle incoming request and return outgoing response.
-   */
-  std::shared_ptr<OutgoingResponse> handle(const std::shared_ptr<IncomingRequest>& request) override;
-};
+        private:
+            std::shared_ptr<taskMod::Todo> m_todoList;
+            std::shared_ptr<oatpp::data::mapping::ObjectMapper> m_objectMapper;
 
-int bye();
+        public:
+            /**
+            * Handle incoming request and return outgoing response.
+            */
+            std::shared_ptr<OutgoingResponse> handle(
+                    const std::shared_ptr<IncomingRequest>& request
+                    ) override;
 
-void run();
+            Handler(
+                    const std::shared_ptr<taskMod::Todo>& todoList,
+                    const std::shared_ptr<oatpp::json::ObjectMapper>& objectMapper);
+
+    };
+
+
+    void run();
 }

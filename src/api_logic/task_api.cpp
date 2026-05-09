@@ -113,8 +113,6 @@ namespace apiMod {
             /* Create server which takes provided TCP connections and passes them to HTTP connection handler */
             g_server = std::make_shared<oatpp::network::Server>(connectionProvider, connectionHandler);
 
-            std::signal(SIGINT, shutdownHandler);
-
             /* Print info about server port */
             OATPP_LOGi("MyApp", "Server running on port " + connectionProvider->getProperty("port").toString());
 

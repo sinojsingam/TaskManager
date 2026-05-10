@@ -1,5 +1,6 @@
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include <csignal>
+#include <set>
 
 #include "oatpp/Environment.hpp"
 #include "oatpp/network/Server.hpp"
@@ -85,6 +86,53 @@ namespace apiMod {
                    : m_todoList(todoList), m_objectMapper(objectMapper) {};
 
 
+    std::string sanitizeText(
+            std::string &original_text,
+            const char replacement_char,
+            std::set<char> extra_checks)
+    {
+        /***
+         * sanitize an input string.
+         *
+         * The input reference is copied and the copy is returned.
+         *
+         * Args:
+         * the string reference to sanitize
+         * [optional] the replacement character
+         * [optional] any additional nono letters to add to the check set
+         * */
+
+        // default set of no-no letters
+        std::set<char> check {'%', ' ', '#', '-'};
+        // append any additional checks to def ones
+        if (!extra_checks.empty()){
+            check.insert(extra_checks.begin(), extra_checks.end());
+        }
+
+        for (char t : check){
+            std::cout << t << std::endl;
+        }
+
+
+        // create a copy of the input ref
+        std::string copy_text = original_text;
+
+
+        // iterate over each letter
+        for(int ix=0; ix < copy_text.length(); ix++){
+            // pull the letter ref
+            char& letter = copy_text[ix];
+            // lower case the letter
+            letter = tolower(letter);
+
+            // if in nono list, replace with replacement character
+            if (check.find(letter) != check.end()){
+                letter = replacement_char;
+            }
+        }
+
+        return copy_text;
+    }
 
     void run() {
         {

@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream>
 #include "task_logic/task_manager.hpp"
+#include "api_logic/task_api.hpp"
 
 
 namespace taskMod {
@@ -44,7 +45,8 @@ namespace taskMod {
     Todo::Todo(std::string new_title){
         // constructor
         m_title = new_title;
-        m_dataFileName = m_title + ".csv";
+        std::string clean_title = apiMod::sanitizeText(m_title, '_');
+        m_dataFileName = clean_title + ".csv";
         m_isFileLoadedOnce = false;
         if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
             // only load once for the lifecycle of the app

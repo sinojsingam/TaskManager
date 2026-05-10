@@ -13,6 +13,7 @@ target_link_libraries(apiMod PRIVATE oatpp::oatpp)
 add_library(taskMod
     src/task_logic/task_manager.cpp 
 )
+target_link_libraries(taskMod PRIVATE oatpp::oatpp)
 target_link_libraries(taskMod PRIVATE apiMod)
 target_link_libraries(apiMod PRIVATE taskMod oatpp::oatpp)
 

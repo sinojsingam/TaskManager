@@ -1,13 +1,18 @@
 #pragma once
 
-#include "oatpp/web/server/HttpRequestHandler.hpp"
+#include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include "oatpp/json/ObjectMapper.hpp"
 #include "task_logic/task_manager.hpp"
+#include <set>
 
 namespace apiMod {
     /** 
      * Custom Request Handler
      */
+    std::string sanitizeText(
+            std::string &original_text,
+            const char replacement_char='_',
+            std::set<char> extra_checks={});
 
     class Handler : public oatpp::web::server::HttpRequestHandler {
 

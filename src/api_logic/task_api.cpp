@@ -1,9 +1,13 @@
+#include "api_logic/AppComponent.hpp"
+#include "controller/MyController.hpp"
+#include "oatpp/network/Server.hpp"
+
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include <csignal>
+#include <oatpp/macro/component.hpp>
 #include <set>
 
 #include "oatpp/Environment.hpp"
-#include "oatpp/network/Server.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include <iostream>
 #include <memory>
@@ -35,55 +39,7 @@ void shutdownHandler(int signal) {
 }
 
 
-
-
 namespace apiMod {
-    /* Begin DTO code-generation */
-    #include OATPP_CODEGEN_BEGIN(DTO)
-
-    /**
-     * Message Data-Transfer-Object
-     */
-    class MessageDto : public oatpp::DTO {
-
-        DTO_INIT(MessageDto, DTO /* Extends */)
-
-        DTO_FIELD(Int32, statusCode);   // Status code field
-        DTO_FIELD(String, message);     // Message field
-        DTO_FIELD(Vector<String>, tasks);
-
-
-    };
-
-    /* End DTO code-generation */
-    #include OATPP_CODEGEN_END(DTO)
-
-
-    /** 
-     * Custom Request Handler
-     */
-    std::shared_ptr<Handler::OutgoingResponse> Handler::handle(
-        const std::shared_ptr<IncomingRequest>& request
-    ) {
-        std::vector<taskMod::Task> t = m_todoList->viewTasks(-1);
-        std::vector<std::string> h;
-        auto message = MessageDto::createShared();
-        message->statusCode = 1024;
-        message->message = "tasks";
-        message->tasks = oatpp::Vector<oatpp::String>::createShared();
-
-        for (const auto& task : t) {
-            message->tasks->push_back(oatpp::String(task.m_task));
-        }
-
-        return ResponseFactory::createResponse(Status::CODE_200, message, m_objectMapper);
-
-    }
-
-    Handler::Handler(
-                    const std::shared_ptr<taskMod::Todo>& todoList,
-                    const std::shared_ptr<oatpp::json::ObjectMapper>& objectMapper)
-                   : m_todoList(todoList), m_objectMapper(objectMapper) {};
 
 
     std::string sanitizeText(
@@ -91,7 +47,7 @@ namespace apiMod {
             const char replacement_char,
             std::set<char> extra_checks)
     {
-        /***
+        /**
          * sanitize an input string.
          *
          * The input reference is copied and the copy is returned.
@@ -137,26 +93,28 @@ namespace apiMod {
     void run() {
         {
             // scope
-            auto todoList = std::make_shared<taskMod::Todo>("newlist");
+            /* Register Components in scope of run() method */
+            AppComponent components;
 
-            todoList->getItems();
 
-            std::string API_HOST = "0.0.0.0";
-            v_uint16 API_PORT = 8000;
             auto objectMapper = std::make_shared<oatpp::json::ObjectMapper>();
 
 
             /* Create Router for HTTP requests routing */
             std::cout << "Oat++ Version: " << OATPP_VERSION << std::endl;
-            auto router = oatpp::web::server::HttpRouter::createShared();
 
-            router->route("GET", "/tasks", std::make_shared<Handler>(todoList, objectMapper));
+            // Get router component
+            OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
 
-            /* Create HTTP connection handler with router */
-            auto connectionHandler = oatpp::web::server::HttpConnectionHandler::createShared(router);
+            // Create MyController and add all of its endpoints to router
+            auto myController = std::make_shared<MyController>();
+            router->addController(myController);
 
-            /* Create TCP connection provider */
-            auto connectionProvider = oatpp::network::tcp::server::ConnectionProvider::createShared({API_HOST, API_PORT, oatpp::network::Address::IP_4});
+            /* Get HTTP connection handler with router */
+            OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler);
+
+            /* Get TCP connection provider */
+            OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
 
             /* Create server which takes provided TCP connections and passes them to HTTP connection handler */
             g_server = std::make_shared<oatpp::network::Server>(connectionProvider, connectionHandler);
@@ -165,6 +123,7 @@ namespace apiMod {
             OATPP_LOGi("MyApp", "Server running on port " + connectionProvider->getProperty("port").toString());
 
             std::signal(SIGINT, shutdownHandler);
+
             /* Run server */
             g_server->run(); // blocks until Ctrl+C
 

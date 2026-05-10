@@ -50,7 +50,7 @@ namespace taskMod {
         m_isFileLoadedOnce = false;
         if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
             // only load once for the lifecycle of the app
-            std::cout << "Loading data from "<< m_dataFileName << ".csv..." << std::endl;
+            std::cout << "Loading data from "<< m_dataFileName << std::endl;
             loadFile();
             m_isFileLoadedOnce = true; // don't load again
             updateIndex();
@@ -59,7 +59,7 @@ namespace taskMod {
     }
 
     Todo::~Todo(){
-        std::cout << "writing to file "<< m_dataFileName << ".csv" << std::endl;
+        std::cout << "writing to file "<< m_dataFileName << std::endl;
         saveFile();
 
     }
@@ -104,6 +104,7 @@ namespace taskMod {
         DataFile.close();
         std::cout << "Saved successfully!" << std::endl;
     }
+
     void Todo::loadFile(){
         std::string taskDataLine;
 
@@ -186,6 +187,11 @@ namespace taskMod {
         }
         return m_tasks[index];
     }
+
+    int Todo::sizeOfList(){
+      return m_tasks.size();
+    }
+
     void Todo::runTaskApp(){
         if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
             // only load once for the lifecycle of the app
@@ -247,7 +253,7 @@ namespace taskMod {
 
     std::vector<Task> Todo::viewTasks(int task_index){
         std::vector<Task> single_task;
-        if (task_index > 0){
+        if (task_index >= 0){
             Task& task = getTaskByIndex(task_index);
             single_task.push_back(Task(task.m_task_id, task.m_task, task.m_status));
             return single_task;
@@ -273,6 +279,11 @@ namespace taskMod {
     }
 
     void Todo::updateIndex(){
+        // if task list is empty do nothing
+        if (m_tasks.size() == 0){
+          return;
+        };
+
         for (int i=0; i < m_tasks.size(); i++){
             // update the indices of the vector items
             m_tasks[i].m_task_id = i;

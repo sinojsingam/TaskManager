@@ -1,17 +1,99 @@
 Manage your tasks all in one app.
 
-This is a simple CLI-based app for creating and keeping track of your most important tasks.
+A REST API that manipulates your personal todo list!.
+
+## Routes:
+
+### GET:
+
+`/tasks`
+Description: shows all your list
+
+Returns list of json objects and metadata.
+
+`/tasks{id}`
+
+Description: retrieve a specific task
 
 
-Compiling and building is done with CMAKE.
+Returns a json:
+
+```json
+{
+    "statusCode": 200,
+    "taskId": 1,
+    "taskString": "run a marathon",
+    "taskStatus": false
+}
+```
+
+### PUT
+
+`/tasks{id}`
+
+Description: Edits an already existing task's text.
+
+Expects a json:
+```json
+
+{
+    "taskString": "your new string"
+}
+```
+
+### PATCH
+
+`/tasks{id}`
+
+Description: Toggles the status of a particular task.
+
+Expects a json:
+```json
+
+{
+    "taskStatus": false || true
+}
+```
+
+### DELETE
+
+`/tasks{id}`
+Description: Removes the entry from the todo list.
+
+
+## Prerequisites
+
+- Git
+- C++ compiler supporting C++ version >= 11
+- Make
+- CMake version >= 3.1
+- The Oatpp library
+
+    ```bash
+    git clone https://github.com/oatpp/oatpp.git
+    cd oatpp/
+
+    mkdir build && cd build
+
+    cmake ..
+    make install
+
+    ```
+
+## Compile
+Then you can compile and run the Taskmanager. Running the program opens a port at 8000.
 
 ```bash
-mkdir build
-cd build
-# - B tells CMake to use the given relative path as the location to generate files
+mkdir build && cd build
+
 cmake ..
 make
+
+# run the app
+./TaskManager
 ```
+
+## Neovim stuff
 
 LSPs like clangd don't automatically read CMakeLists.txt. They look for a "map" of your project called a compile_commands.json file. Without it, clangd has no idea where your include folder is or what libraries you are linking.
 

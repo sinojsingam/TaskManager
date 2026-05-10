@@ -40,6 +40,7 @@ namespace taskMod {
             void addTask( int id, std::string &task, bool status );
             void editTask(int task_ix);
             void getItems();
+            int sizeOfList();
             void toggleItemStatus(int itemIx);
             Task& getTaskByIndex(int index);
             // CLI mode: What the user wants todo?

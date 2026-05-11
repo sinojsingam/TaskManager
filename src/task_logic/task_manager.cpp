@@ -245,6 +245,7 @@ namespace taskMod {
 
     void Todo::removeTaskApi(int task_index){
         m_tasks.erase(m_tasks.begin() + task_index);
+        updateIndex();
     };
 
     void Todo::toggleTaskApi(int task_index){

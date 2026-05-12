@@ -29,6 +29,13 @@ public:
 
 public:
 
+  auto errorDto (std::string message="") {
+    auto dto = MessageDto::createShared();
+    dto->statusCode = 400;
+    dto->message = "Error: " + message;
+    return createDtoResponse(Status::CODE_400, dto);
+  }
+
   ENDPOINT("GET", "/debug", root) {
     auto dto = MessageDto::createShared();
     dto->statusCode = 200;
@@ -61,8 +68,9 @@ public:
     dto->message = "Deleted task successfully";
     if (id < todo->sizeOfList()) {
         todo->removeTaskApi(id);
+      return createDtoResponse(Status::CODE_200, dto);
     }
-    return createDtoResponse(Status::CODE_200, dto);
+    return errorDto("Task was not deleted!");
   }
 
   ENDPOINT("PATCH", "/tasks/{id}", toggleTaskById,
@@ -84,9 +92,10 @@ public:
 
     if (id < todo->sizeOfList()) {
         todo->toggleTaskApi(id);
+        return createDtoResponse(Status::CODE_200, dto);
     }
 
-    return createDtoResponse(Status::CODE_200, dto);
+    return errorDto("Out of bounds");
   }
 
   ENDPOINT("PUT", "/tasks/{id}", editTaskById,
@@ -101,49 +110,38 @@ public:
 
     if (id < todo->sizeOfList()) {
         todo->editTaskApi(id, edit_task);
+        return createDtoResponse(Status::CODE_200, dto);
     }
 
-    return createDtoResponse(Status::CODE_200, dto);
+    return errorDto("Out of bounds");
 
   }
 
   ENDPOINT("GET", "/tasks/{id}", getTaskById, PATH(Int32, id)) {
     auto dto = TaskDTO::createShared();
 
-    std::string outOfBoundsString = "Out of bounds";
-    bool outOfBoundsStatus = false;
-    int outOfBoundsCode = 400;
-    Status outOfBoundsReturnCode = Status::CODE_400;
-
-    std::string &taskString = outOfBoundsString;
-    bool &status = outOfBoundsStatus;
-    int &statusCode = outOfBoundsCode;
-    Status &returnCode = outOfBoundsReturnCode;
-
     if (id < todo->sizeOfList()) {
         std::vector<taskMod::Task> taskVector = todo->viewTasks(id);
         taskMod::Task task = taskVector[0];
-        taskString = task.m_task;
-        status = task.m_status;
-        statusCode = 200;
-        returnCode = Status::CODE_200;
+        dto->statusCode = 200;
+        dto->taskId = id;
+        dto->taskString = task.m_task;
+        dto->taskStatus = task.m_status;
+
+      return createDtoResponse(Status::CODE_200, dto);
     }
 
-    dto->statusCode = statusCode;
-    dto->taskId = id;
-    dto->taskString = taskString;
-    dto->taskStatus = status;
-
-
-
-    return createDtoResponse(returnCode, dto);
+    return errorDto("Out of bounds");
   }
 
  // BODY_DTO deserializes incoming JSON
-  ENDPOINT("POST", "/tasks", createTask, BODY_DTO(Object<TaskDTO>, taskDto)){
-    std::cout << "incoming data" << std::endl;
-    std::cout << *taskDto->taskString << std::endl;
+  ENDPOINT("POST", "/tasks",
+      createTask,
+      BODY_DTO(Object<TaskDTO>,taskDto)
+      ){
 
+    std::cout << "incoming data" << std::endl;
+    std::cout << *taskDto-> taskString << std::endl;
     std::string new_task = *taskDto->taskString;
 
     todo->addTaskApi(new_task);
@@ -155,9 +153,8 @@ public:
     return createDtoResponse(Status::CODE_201, dto);
   }
 
-
   // TODO Insert Your endpoints here !!!
-  
+
 };
 
 #include OATPP_CODEGEN_END(ApiController) ///< End Codegen

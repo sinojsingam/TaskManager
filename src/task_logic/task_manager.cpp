@@ -155,7 +155,6 @@ namespace taskMod {
         std::cout << "Enter new task (or press Enter to keep current): ";
         std::string new_task;
         getline(std::cin >> std::ws, new_task);
-        std::cout << "TEST " << new_task << std::endl;
 
         if (!new_task.empty()) {
             task.editTaskText(new_task);

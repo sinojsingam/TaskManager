@@ -41,6 +41,15 @@ class TasksDTO : public oatpp::DTO {
     DTO_FIELD(Vector<Object<TaskDTO>>, tasks);
 };
 
+/** Using only for POST or PUT **/
+class IncomingTaskDto : public oatpp::DTO {
+
+    DTO_INIT(IncomingTaskDto, DTO /* Extends */)
+
+    DTO_FIELD(String, taskString);     // Message field
+    DTO_FIELD(Boolean, taskStatus); // if the task is complete
+};
+
 // here to add more DTOs
 
 /* End DTO code-generation */

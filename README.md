@@ -1,12 +1,13 @@
 Manage your tasks all in one app.
 
-A REST API that manipulates your personal todo list!.
+A REST API that manipulates your personal todo list!
 
 ## Routes:
 
 ### GET:
 
 `/tasks`
+
 Description: shows all your list
 
 Returns list of json objects and metadata.
@@ -32,12 +33,15 @@ Returns a json:
 `/tasks{id}`
 
 Description: Edits an already existing task's text.
+The JSON body must include at least one the below key-value pairs showed below.
 
-Expects a json:
+Expects a JSON in the request body:
+
 ```json
 
 {
     "taskString": "your new string"
+    "taskStatus": false or true
 }
 ```
 
@@ -45,19 +49,12 @@ Expects a json:
 
 `/tasks{id}`
 
-Description: Toggles the status of a particular task.
-
-Expects a json:
-```json
-
-{
-    "taskStatus": false || true
-}
-```
+Description: Toggles the status of a particular task to the opposite of whatever it was before.
 
 ### DELETE
 
 `/tasks{id}`
+
 Description: Removes the entry from the todo list.
 
 
@@ -79,6 +76,13 @@ Description: Removes the entry from the todo list.
     make install
 
     ```
+
+## Run with Docker
+
+```bash
+docker build -t TaskManager .
+docker run -p 8000:8000 -d TaskManager
+```
 
 ## Compile
 Then you can compile and run the Taskmanager. Running the program opens a port at 8000.
@@ -108,4 +112,3 @@ From root of the project
 ```bash
 ln -s build/compile_commands.json .
 ```
-

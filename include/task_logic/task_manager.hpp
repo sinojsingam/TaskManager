@@ -16,6 +16,7 @@ namespace taskMod {
             bool m_status;
             Task(int aTaskId, std::string &aTask, bool aStatus);
             void editTaskText(std::string &new_task_string);
+            void editTaskStatus(bool status);
             void toggleStatus();
             std::string toCSVFormat();
             void print();
@@ -49,8 +50,8 @@ namespace taskMod {
             void removeTaskRequest();
             void toggleTaskRequest();
             // API mode
-            void addTaskApi(std::string &new_task);
-            void editTaskApi(int task_index,  std::string &new_task);
+            void addTaskApi(std::string &new_task, bool status=false);
+            void editTaskApi(int task_index,  std::string &new_task, bool status);
             void removeTaskApi(int task_index);
             void toggleTaskApi(int task_index);
             std::vector<Task> viewTasks(int task_index);

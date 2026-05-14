@@ -41,7 +41,6 @@ void shutdownHandler(int signal) {
 
 namespace apiMod {
 
-
     std::string sanitizeText(
             std::string &original_text,
             const char replacement_char,

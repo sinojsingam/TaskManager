@@ -1,13 +1,16 @@
 #ifndef MyController_hpp
 #define MyController_hpp
 
+#include "api_logic/task_api.hpp"
 #include "dto/DTOs.hpp"
 
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/macro/codegen.hpp"
 #include "oatpp/macro/component.hpp"
 #include "task_logic/task_manager.hpp"
+#include <cstdio>
 #include <iostream>
+#include <algorithm>
 #include <string>
 
 #include OATPP_CODEGEN_BEGIN(ApiController) ///< Begin Codegen
@@ -74,19 +77,10 @@ public:
   }
 
   ENDPOINT("PATCH", "/tasks/{id}", toggleTaskById,
-      PATH(Int32, id),
-      BODY_DTO(Object<TaskDTO>, taskDto)) {
+      PATH(Int32, id)
+      ) {
 
     auto dto = MessageDto::createShared();
-
-    bool toggle = *taskDto->taskStatus;
-
-    if (toggle){
-      std::cout << "toggle task to true" << std::endl;
-    } else{
-      std::cout << "toggle task to false" << std::endl;
-    }
-
     dto->statusCode = 200;
     dto->message = "Toggled task successfully";
 
@@ -100,21 +94,40 @@ public:
 
   ENDPOINT("PUT", "/tasks/{id}", editTaskById,
       PATH(Int32, id),
-      BODY_DTO(Object<TaskDTO>, taskDto)) {
+      BODY_DTO(Object<IncomingTaskDto>, taskDto)) {
+
+    if (!taskDto->taskString && taskDto->taskStatus == nullptr){
+      return errorDto("taskString or taskStatus must be provided");
+    }
+
+    if (id > todo->sizeOfList()) {
+        return errorDto("Id Out of bounds");
+    }
 
     auto dto = MessageDto::createShared();
-    std::cout << *taskDto->taskString << std::endl;
-    std::string edit_task = *taskDto->taskString;
     dto->statusCode = 200;
     dto->message = "Edited task successfully";
 
-    if (id < todo->sizeOfList()) {
-        todo->editTaskApi(id, edit_task);
-        return createDtoResponse(Status::CODE_200, dto);
+
+    // get existing task
+    std::vector<taskMod::Task> taskVector = todo->viewTasks(id);
+    taskMod::Task task = taskVector[0];
+    // save the status and text from before
+    bool incomingStatus = task.m_status;
+    std::string incomingString = task.m_task;
+
+    // overwrite from incoming if any
+    if (taskDto->taskStatus != nullptr){
+        incomingStatus = *taskDto->taskStatus;
     }
 
-    return errorDto("Out of bounds");
+    if (taskDto->taskString){
+        incomingString = *taskDto->taskString;
+    }
 
+    // update instance
+    todo->editTaskApi(id, incomingString, incomingStatus);
+    return createDtoResponse(Status::CODE_200, dto);
   }
 
   ENDPOINT("GET", "/tasks/{id}", getTaskById, PATH(Int32, id)) {
@@ -137,14 +150,22 @@ public:
  // BODY_DTO deserializes incoming JSON
   ENDPOINT("POST", "/tasks",
       createTask,
-      BODY_DTO(Object<TaskDTO>,taskDto)
+      BODY_DTO(Object<IncomingTaskDto>,taskDto)
       ){
 
-    std::cout << "incoming data" << std::endl;
-    std::cout << *taskDto-> taskString << std::endl;
+    if (!taskDto->taskString){
+      return errorDto("taskString must be provided");
+    }
+
+    bool incomingStatus = false;
+
+    if (taskDto->taskStatus != nullptr){
+        incomingStatus = *taskDto->taskStatus;
+    }
+
     std::string new_task = *taskDto->taskString;
 
-    todo->addTaskApi(new_task);
+    todo->addTaskApi(new_task, incomingStatus);
 
     auto dto = MessageDto::createShared();
     dto->statusCode = 200;

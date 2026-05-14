@@ -24,6 +24,10 @@ namespace taskMod {
         m_task = new_task_string;
     };
 
+    void Task::editTaskStatus(bool status){
+      m_status = status;
+    }
+
     void Task::toggleStatus(){
         m_status = !m_status;
     };
@@ -216,17 +220,22 @@ namespace taskMod {
         std::cout << "Added new task, enter 'v' to view your tasks!" << std::endl;
     }
 
-    void Todo::editTaskApi(int task_index, std::string &new_task){
-        if (task_index > 0)  {
+    void Todo::editTaskApi(
+        int task_index,
+        std::string &new_task,
+        bool status
+        ){
+        if (task_index >= 0)  {
             Task& task = getTaskByIndex(task_index);
             if (!new_task.empty()) {
                     task.editTaskText(new_task);
             }
+            task.editTaskStatus(status);
         }
     };
 
-    void Todo::addTaskApi(std::string &task){
-        addTask(m_autoID, task, false);
+    void Todo::addTaskApi(std::string &task, bool status){
+        addTask(m_autoID, task, status);
         m_autoID++; // increment auto id
         updateIndex();
     };

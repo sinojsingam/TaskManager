@@ -1,17 +1,15 @@
-# Use the official Ubuntu image as the base image
-FROM ubuntu:latest
+# Use alpine for small image size
+FROM alpine:3.14
 
 # Set oatpp dir
 WORKDIR /oat
 
 # Install necessary dependencies
-RUN apt-get update && apt-get install -y \
-    g++ \
-    libcpprest-dev \
-    libboost-all-dev \
-    libssl-dev \
-    git \
-    cmake
+RUN apk add --no-cache \
+    clang \
+    build-base \
+    cmake \
+    git
 
 # Compile oatpp
 RUN git clone https://github.com/oatpp/oatpp.git &&  \

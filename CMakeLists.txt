@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.20)
 # create project
 project(TaskManager)
 
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Use -std=c++17 instead of -std=gnu++17
+
 # get hpp files from include dir
 # specify the include dir
 include_directories(include)

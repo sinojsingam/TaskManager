@@ -32,7 +32,7 @@ Returns a json:
 
 `/tasks{id}`
 
-Description: Edits an already existing task's text.
+Description: Edits an already existing task's text and/or a task's status.
 The JSON body must include at least one the below key-value pairs showed below.
 
 Expects a JSON in the request body:

@@ -30,7 +30,7 @@ Returns a json:
 
 ### PUT
 
-`/tasks{id}`
+`/tasks/{id}`
 
 Description: Edits an already existing task's text and/or a task's status.
 The JSON body must include at least one the below key-value pairs showed below.
@@ -47,13 +47,13 @@ Expects a JSON in the request body:
 
 ### PATCH
 
-`/tasks{id}`
+`/tasks/{id}`
 
 Description: Toggles the status of a particular task to the opposite of whatever it was before.
 
 ### DELETE
 
-`/tasks{id}`
+`/tasks/{id}`
 
 Description: Removes the entry from the todo list.
 

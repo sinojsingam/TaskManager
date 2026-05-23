@@ -15,8 +15,23 @@ namespace taskMod {
         m_task = aTask;
         m_task_id = aTaskId;
         m_status = aStatus;
-
     };
+
+    void Task::updateIndex(int new_index){
+      m_task_id = new_index;
+    }
+
+    const std::string& Task::getTask() const {
+      return m_task;
+    };
+
+    bool Task::getTaskStatus() const{
+      return m_status;
+    };
+
+    int Task::getId() const{
+      return m_task_id;
+    }
 
     void Task::editTaskText(std::string &new_task_string){
         m_task = new_task_string;
@@ -34,14 +49,14 @@ namespace taskMod {
         return std::to_string(m_task_id) + ',' + m_task + ',' + std::to_string(m_status) + "\n";
     }
 
-    void Task::print(){
+    std::string Task::print(){
         std::string status_text;
         if (m_status){
             status_text = "✅";
         } else {
             status_text = "⏳";
         };
-        std::cout << m_task_id << ": " << m_task << ": " << status_text << std::endl;
+        return std::to_string(m_task_id) + ": " + m_task + ": " + status_text + '\n';
     }
 
     Todo::Todo(std::string new_title){
@@ -201,7 +216,7 @@ namespace taskMod {
 
     void Todo::editTask(int task_ix){
         Task& task = getTaskByIndex(task_ix);
-        std::cout << "Current Task: " << task.m_task << std::endl;
+        std::cout << "Current Task: " << task.print() << std::endl;
         std::cout << "Enter new task (or press Enter to keep current): ";
         std::string new_task;
         getline(std::cin >> std::ws, new_task);
@@ -210,7 +225,7 @@ namespace taskMod {
             task.editTaskText(new_task);
         }
 
-        std::cout << "Updated Task: " << task.m_task << std::endl;
+        std::cout << "Updated Task: " << task.print() << std::endl;
     }
 
     void Todo::getItems(){
@@ -218,7 +233,7 @@ namespace taskMod {
         std::cout << "--- Your tasks are ---" << std::endl;
 
         for(int i = 0; i < m_tasks.size(); i++){
-            m_tasks[i].print();
+            std::cout << m_tasks[i].print() << std::endl;
         }
         std::cout << "------" << std::endl;
     }
@@ -310,7 +325,8 @@ namespace taskMod {
         std::vector<Task> single_task;
         if (task_index >= 0){
             Task& task = getTaskByIndex(task_index);
-            single_task.push_back(Task(task.m_task_id, task.m_task, task.m_status));
+            std::string taskString = task.getTask();
+            single_task.push_back(Task(task.getId(), taskString, task.getTaskStatus()));
             return single_task;
         }
         return m_tasks;
@@ -341,14 +357,14 @@ namespace taskMod {
 
         for (int i=0; i < m_tasks.size(); i++){
             // update the indices of the vector items
-            m_tasks[i].m_task_id = i;
+            m_tasks[i].updateIndex(i);
         }
 
         // update the static variable 'id' instance
         // get last item of vector
         std::vector<Task>::iterator lastItem = m_tasks.end() - 1; 
         // assign last item's index to the static var
-        m_autoID = lastItem->m_task_id + 1;
+        m_autoID = lastItem->getId() + 1;
     }
 
     int Todo::m_autoID = 0;

@@ -55,9 +55,9 @@ public:
     for (const auto& task : todo->viewTasks(-1)) {
       auto single = TaskDTO::createShared();
       single->statusCode = 200;
-      single->taskId = task.m_task_id;
-      single->taskString = task.m_task;
-      single->taskStatus = task.m_status;
+      single->taskId = task.getId();
+      single->taskString = task.getTask();
+      single->taskStatus = task.getTaskStatus();
 
       dto->tasks->push_back(single);
     }
@@ -113,8 +113,8 @@ public:
     std::vector<taskMod::Task> taskVector = todo->viewTasks(id);
     taskMod::Task task = taskVector[0];
     // save the status and text from before
-    bool incomingStatus = task.m_status;
-    std::string incomingString = task.m_task;
+    bool incomingStatus = task.getTaskStatus();
+    std::string incomingString = task.getTask();
 
     // overwrite from incoming if any
     if (taskDto->taskStatus != nullptr){
@@ -138,8 +138,8 @@ public:
         taskMod::Task task = taskVector[0];
         dto->statusCode = 200;
         dto->taskId = id;
-        dto->taskString = task.m_task;
-        dto->taskStatus = task.m_status;
+        dto->taskString = task.getTask();
+        dto->taskStatus = task.getTaskStatus();
 
       return createDtoResponse(Status::CODE_200, dto);
     }

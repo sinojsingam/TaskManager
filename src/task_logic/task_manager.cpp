@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -8,7 +7,6 @@
 #include <vector>
 #include <iostream>
 #include "task_logic/task_manager.hpp"
-#include "api_logic/task_api.hpp"
 
 
 namespace taskMod {
@@ -49,7 +47,7 @@ namespace taskMod {
     Todo::Todo(std::string new_title){
         // constructor
         m_title = new_title;
-        std::string clean_title = apiMod::sanitizeText(m_title, '_');
+        std::string clean_title = sanitizeText(m_title, '_');
         m_dataFileName = clean_title + ".csv";
         m_isFileLoadedOnce = false;
         if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
@@ -66,6 +64,54 @@ namespace taskMod {
         std::cout << "writing to file "<< m_dataFileName << std::endl;
         saveFile();
 
+    }
+
+    std::string Todo::sanitizeText(
+            std::string &original_text,
+            const char replacement_char,
+            std::set<char> extra_checks)
+    {
+        /**
+         * sanitize an input string.
+         *
+         * The input reference is copied and the copy is returned.
+         *
+         * Args:
+         * the string reference to sanitize
+         * [optional] the replacement character
+         * [optional] any additional nono letters to add to the check set
+         * */
+
+        // default set of no-no letters
+        std::set<char> check {'%', ' ', '#', '-'};
+        // append any additional checks to def ones
+        if (!extra_checks.empty()){
+            check.insert(extra_checks.begin(), extra_checks.end());
+        }
+
+        for (char t : check){
+            std::cout << t << std::endl;
+        }
+
+
+        // create a copy of the input ref
+        std::string copy_text = original_text;
+
+
+        // iterate over each letter
+        for(int ix=0; ix < copy_text.length(); ix++){
+            // pull the letter ref
+            char& letter = copy_text[ix];
+            // lower case the letter
+            letter = tolower(letter);
+
+            // if in nono list, replace with replacement character
+            if (check.find(letter) != check.end()){
+                letter = replacement_char;
+            }
+        }
+
+        return copy_text;
     }
 
     void Todo::giveOrder(){

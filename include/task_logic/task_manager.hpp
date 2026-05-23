@@ -1,11 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-
-// class mod1c1{
-// public:
-//    void foo();
-// };
+#include <set>
 
 namespace taskMod {
     // each individual task blueprint
@@ -31,6 +27,12 @@ namespace taskMod {
             void saveFile();
             void loadFile();
             bool is_file_exist(std::string &fileName);
+            std::string sanitizeText(
+                    std::string &original_text,
+                    const char replacement_char='_',
+                    std::set<char> extra_checks={});
+
+
         public:
             bool m_isFileLoadedOnce;
             std::string m_dataFileName;

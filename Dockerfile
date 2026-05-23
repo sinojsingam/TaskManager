@@ -38,4 +38,4 @@ RUN mkdir build && \
 EXPOSE 8000
 
 # Command to run the API when the container starts
-CMD ["./build/TaskManager"]
+CMD ["./build/TaskManager", "--api"]

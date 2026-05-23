@@ -1,6 +1,18 @@
 Manage your tasks all in one app.
 
-A REST API that manipulates your personal todo list!
+A REST or CLI API that manipulates your personal todo list!
+
+## Running the app:
+
+```bash
+
+./TaskManager --help  # show help screen
+
+./TaskManager --api   # start app as a rest api at port 8000
+# OR ###
+./TaskManager --cli   # start app as cli app
+
+```
 
 ## Routes:
 
@@ -77,11 +89,11 @@ Description: Removes the entry from the todo list.
 
     ```
 
-## Run with Docker
+## Run the REST API with Docker
 
 ```bash
-docker build -t TaskManager .
-docker run -p 8000:8000 -d TaskManager
+docker build -t taskmanager .
+docker run -p 8000:8000 -d taskmanager
 ```
 
 ## Compile
@@ -94,7 +106,7 @@ cmake ..
 make
 
 # run the app
-./TaskManager
+./TaskManager --help
 ```
 
 ## Neovim stuff

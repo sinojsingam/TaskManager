@@ -44,7 +44,7 @@ namespace cliMod {
           // so it is not available for other case jumps
           {
             std::cout << "starting cli" << std::endl;
-            std::unique_ptr<taskMod::Todo> taskApp = std::make_unique<taskMod::Todo>("test");
+            std::unique_ptr<taskMod::Todo> taskApp = std::make_unique<taskMod::Todo>("todo list");
             taskApp->runTaskApp();
           }
           break;

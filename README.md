@@ -24,7 +24,7 @@ Description: shows all your list
 
 Returns list of json objects and metadata.
 
-`/tasks{id}`
+`/tasks/{id}`
 
 Description: retrieve a specific task
 

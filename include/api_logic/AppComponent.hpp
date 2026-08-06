@@ -23,7 +23,7 @@ class AppComponent {
 public:
 
   OATPP_CREATE_COMPONENT(std::shared_ptr<taskMod::Todo>, todoList)([] {
-    auto todo_list = std::make_shared<taskMod::Todo>("API Todo List");
+    auto todo_list = std::make_shared<taskMod::Todo>("todo list");
     return todo_list;
   }());
 

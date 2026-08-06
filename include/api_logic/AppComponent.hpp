@@ -1,8 +1,14 @@
 #ifndef AppComponent_hpp
 #define AppComponent_hpp
 
+#include "db/MyClient.hpp"      //< User-declared DbClient
+#include "oatpp/orm/DbClient.hpp"
+#include "oatpp-1.4.0/oatpp-postgresql/oatpp-postgresql/orm.hpp"
+
 #include "oatpp/json/ObjectMapper.hpp"
 #include <memory>
+#include <oatpp-postgresql/Connection.hpp>
+#include <oatpp-postgresql/ConnectionProvider.hpp>
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "task_logic/task_manager.hpp"
@@ -67,6 +73,32 @@ public:
   OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)([] {
     return std::make_shared<oatpp::json::ObjectMapper>();
   }());
+
+  /**
+   * Create DbClient component.
+   * SQLite is used as an example here. For other databases declaration is similar.
+   */
+  OATPP_CREATE_COMPONENT(std::shared_ptr<db::MyClient>, myDatabaseClient)([] {
+
+    /* Create database-specific ConnectionProvider */
+    auto connectionProvider = std::make_shared<oatpp::postgresql::ConnectionProvider>(
+        "postgresql://user:master@192.168.0.175:5432/postgres"
+        );
+
+    auto connectionPool = oatpp::postgresql::ConnectionPool::createShared(
+      connectionProvider,
+      10 /* max connections */,
+      std::chrono::seconds(5)
+    );
+
+    /* Create database-specific Executor */
+    auto executor = std::make_shared<oatpp::postgresql::Executor>(connectionPool);
+  
+    /* Create MyClient database client */
+    return std::make_shared<db::MyClient>(executor);
+
+  }());
+
 
 };
 

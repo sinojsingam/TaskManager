@@ -8,10 +8,12 @@
 #include "oatpp/macro/codegen.hpp"
 #include "oatpp/macro/component.hpp"
 #include "task_logic/task_manager.hpp"
+#include "oatpp/json/ObjectMapper.hpp"
 #include <cstdio>
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include "db/MyClient.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController) ///< Begin Codegen
 
@@ -32,6 +34,9 @@ public:
 
 public:
 
+  OATPP_COMPONENT(std::shared_ptr<db::MyClient>, client);
+
+
   auto errorDto (std::string message="") {
     auto dto = MessageDto::createShared();
     dto->statusCode = 400;
@@ -43,6 +48,16 @@ public:
     auto dto = MessageDto::createShared();
     dto->statusCode = 200;
     dto->message = "Hello World!";
+    client->createUser("admin", "admin@domain.com", "ADMIN");
+    auto result = client->getUserByName("admin");
+    auto dataset = result->fetch<oatpp::Vector<oatpp::Fields<oatpp::Any>>>();
+
+    /* And we can easily serialize result as a json string using json object mapper */
+    auto jsonObjectMapper = oatpp::json::ObjectMapper();
+    auto json = jsonObjectMapper.writeToString(dataset);
+
+    /* Print the resultant json */
+    std::cout << json->c_str() << std::endl;
     return createDtoResponse(Status::CODE_200, dto);
   }
 

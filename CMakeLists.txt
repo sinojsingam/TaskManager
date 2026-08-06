@@ -14,6 +14,7 @@ include_directories(include)
 
 # find the OATPP package
 find_package(oatpp 1.4.0 REQUIRED)
+find_package(oatpp-postgresql REQUIRED)
 
 # library create, it as no dependencies (top of the hierarchy)
 add_library(taskMod
@@ -26,15 +27,23 @@ add_library(apiMod
 )
 
 # api mod depends on task and oatpp
-target_link_libraries(apiMod PRIVATE taskMod oatpp::oatpp)
+target_link_libraries(apiMod PRIVATE
+	taskMod
+	oatpp::oatpp
+	oatpp::oatpp-postgresql
+)
 
 # depends on both task and apiMod
 add_library(cliMod 
     src/cli_logic/cli_manager.cpp 
 )
 
-target_link_libraries(cliMod PRIVATE taskMod apiMod oatpp::oatpp)
-
+target_link_libraries(cliMod PRIVATE
+	taskMod
+	apiMod
+	oatpp::oatpp
+	oatpp::oatpp-postgresql
+)
 
 add_executable(TaskManager src/main.cpp)
 
@@ -44,4 +53,5 @@ target_link_libraries(TaskManager
     apiMod 
     cliMod
     oatpp::oatpp
+    oatpp::oatpp-postgresql
 )

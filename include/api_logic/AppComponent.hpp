@@ -14,6 +14,9 @@
 #include "task_logic/task_manager.hpp"
 
 #include "oatpp/macro/component.hpp"
+#include "cli_logic/cli_logic.hpp"
+#include <iostream>
+#include <string>
 
 /**
  *  Class which creates and holds Application components and registers components in oatpp::base::Environment
@@ -81,6 +84,15 @@ public:
   OATPP_CREATE_COMPONENT(std::shared_ptr<db::MyClient>, myDatabaseClient)([] {
 
     /* Create database-specific ConnectionProvider */
+    auto PG_USER = cliMod::getEnvVar("PG_USER");
+    auto PG_PASS = cliMod::getEnvVar("PG_PASS");
+    auto PG_IP = cliMod::getEnvVar("PG_IP");
+    auto PG_PORT = cliMod::getEnvVar("PG_PORT");
+    auto PG_DB = cliMod::getEnvVar("PG_DB");
+    auto PG_STRING = "postgresql://" + PG_USER + ":" + PG_PASS +"@" + PG_IP + ":" + PG_PORT + "/" + PG_DB;
+
+    std::cout << "ENV VAR IS " << PG_STRING << std::endl;
+
     auto connectionProvider = std::make_shared<oatpp::postgresql::ConnectionProvider>(
         "postgresql://user:master@192.168.0.175:5432/postgres"
         );

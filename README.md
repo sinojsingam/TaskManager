@@ -2,15 +2,17 @@ Manage your tasks all in one app.
 
 A REST or CLI API that manipulates your personal todo list!
 
-## Running the app:
+## Running the app locally:
+
+You have to add the env variables while running:
 
 ```bash
 
 ./TaskManager --help  # show help screen
 
-./TaskManager --api   # start app as a rest api at port 8000
+PG_USER=user PG_PASS=master PG_IP=localhost PG_PORT=5432 PG_DB=postgres ./TaskManager --api   # start app as a rest api at port 8000
 # OR ###
-./TaskManager --cli   # start app as cli app
+PG_USER=user PG_PASS=master PG_IP=localhost PG_PORT=5432 PG_DB=postgres ./TaskManager --cli   # start app as cli app
 
 ```
 
@@ -85,8 +87,23 @@ Description: Removes the entry from the todo list.
     mkdir build && cd build
 
     cmake ..
-    make install
+    sudo make install
+    ```
+- The PostgreSQL module for Oatpp
 
+    ```
+    git clone https://github.com/oatpp/oatpp-postgresql.git
+    cd oatpp-postgresql
+
+    mkdir build && cd build
+
+    cmake -DOATPP_BUILD_TESTS=OFF ..
+
+    make oatpp-postgresql -j$(nproc)
+
+    sudo cmake --install .
+
+    
     ```
 
 ## Run the REST API with Docker

@@ -1,7 +1,7 @@
 #ifndef AppComponent_hpp
 #define AppComponent_hpp
 
-#include "db/MyClient.hpp"      //< User-declared DbClient
+#include "db/MyClient.hpp"
 #include "oatpp/orm/DbClient.hpp"
 #include "oatpp-1.4.0/oatpp-postgresql/oatpp-postgresql/orm.hpp"
 
@@ -26,6 +26,28 @@
 struct ServerConfig {
   std::string host;
   v_uint16 port;
+};
+
+std::string getDBParams() {
+    /* Create database-specific ConnectionProvider */
+    auto PG_USER = cliMod::getEnvVar("PG_USER");
+    auto PG_PASS = cliMod::getEnvVar("PG_PASS");
+    auto PG_IP = cliMod::getEnvVar("PG_IP");
+    auto PG_PORT = cliMod::getEnvVar("PG_PORT");
+    auto PG_DB = cliMod::getEnvVar("PG_DB");
+    if (PG_USER != "" &&
+        PG_PASS != "" &&
+        PG_IP != "" &&
+        PG_PORT != "" &&
+        PG_DB != ""
+    ){
+      auto PG_STRING = "postgresql://" + PG_USER + ":" + PG_PASS +"@" + PG_IP + ":" + PG_PORT + "/" + PG_DB;
+      std::cout << PG_STRING << std::endl;
+      return PG_STRING;
+    } else {
+      std::cout << "no vars" << std::endl;
+      return "";
+    };
 };
 
 class AppComponent {
@@ -81,20 +103,11 @@ public:
    * Create DbClient component.
    * SQLite is used as an example here. For other databases declaration is similar.
    */
+
   OATPP_CREATE_COMPONENT(std::shared_ptr<db::MyClient>, myDatabaseClient)([] {
 
-    /* Create database-specific ConnectionProvider */
-    auto PG_USER = cliMod::getEnvVar("PG_USER");
-    auto PG_PASS = cliMod::getEnvVar("PG_PASS");
-    auto PG_IP = cliMod::getEnvVar("PG_IP");
-    auto PG_PORT = cliMod::getEnvVar("PG_PORT");
-    auto PG_DB = cliMod::getEnvVar("PG_DB");
-    auto PG_STRING = "postgresql://" + PG_USER + ":" + PG_PASS +"@" + PG_IP + ":" + PG_PORT + "/" + PG_DB;
-
-    std::cout << "ENV VAR IS " << PG_STRING << std::endl;
-
     auto connectionProvider = std::make_shared<oatpp::postgresql::ConnectionProvider>(
-        "postgresql://user:master@192.168.0.175:5432/postgres"
+          getDBParams()
         );
 
     auto connectionPool = oatpp::postgresql::ConnectionPool::createShared(
@@ -105,7 +118,7 @@ public:
 
     /* Create database-specific Executor */
     auto executor = std::make_shared<oatpp::postgresql::Executor>(connectionPool);
-  
+
     /* Create MyClient database client */
     return std::make_shared<db::MyClient>(executor);
 

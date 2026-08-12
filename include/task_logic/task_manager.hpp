@@ -28,6 +28,7 @@ namespace taskMod {
     private:
       static int m_autoID;
       std::vector<Task> m_tasks;
+      bool m_use_db;
       void giveOrder();
       void saveFile();
       void loadFile();
@@ -42,7 +43,7 @@ namespace taskMod {
       bool m_isFileLoadedOnce;
       std::string m_dataFileName;
       std::string m_title;
-      Todo(std::string new_title);
+      Todo(std::string new_title, bool use_db=false);
       ~Todo();
       // Task class control
       void addTask( int id, std::string &task, bool status );

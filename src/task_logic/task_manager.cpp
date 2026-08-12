@@ -59,7 +59,7 @@ namespace taskMod {
         return std::to_string(m_task_id) + ": " + m_task + ": " + status_text + '\n';
     }
 
-    Todo::Todo(std::string new_title){
+    Todo::Todo(std::string new_title, bool use_db){
         // constructor
         m_title = new_title;
         std::string clean_title = sanitizeText(m_title, '_');

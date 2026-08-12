@@ -48,16 +48,17 @@ public:
     auto dto = MessageDto::createShared();
     dto->statusCode = 200;
     dto->message = "Hello World!";
-    client->createUser("admin", "admin@domain.com", "ADMIN");
-    auto result = client->getUserByName("admin");
-    auto dataset = result->fetch<oatpp::Vector<oatpp::Fields<oatpp::Any>>>();
+    client->init();
+    // client->createUser("admin", "admin@domain.com", "ADMIN");
+    // auto result = client->getUserByName("admin");
+    // auto dataset = result->fetch<oatpp::Vector<oatpp::Fields<oatpp::Any>>>();
 
     /* And we can easily serialize result as a json string using json object mapper */
-    auto jsonObjectMapper = oatpp::json::ObjectMapper();
-    auto json = jsonObjectMapper.writeToString(dataset);
-
-    /* Print the resultant json */
-    std::cout << json->c_str() << std::endl;
+    // auto jsonObjectMapper = oatpp::json::ObjectMapper();
+    // auto json = jsonObjectMapper.writeToString(dataset);
+    //
+    // /* Print the resultant json */
+    // std::cout << json->c_str() << std::endl;
     return createDtoResponse(Status::CODE_200, dto);
   }
 
@@ -188,8 +189,6 @@ public:
 
     return createDtoResponse(Status::CODE_201, dto);
   }
-
-  // TODO Insert Your endpoints here !!!
 
 };
 

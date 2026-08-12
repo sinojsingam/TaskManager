@@ -15,6 +15,16 @@ public:
   MyClient(const std::shared_ptr<oatpp::orm::Executor>& executor)
     : oatpp::orm::DbClient(executor)
   {}
+    const char *initString =
+ "CREATE TABLE IF NOT EXISTS users ( \
+  id integer primary key generated always as identity, \
+  username VARCHAR (30), \
+  email VARCHAR(100),\
+  role VARCHAR(20));\
+CREATE TABLE IF NOT EXISTS todo ( \
+  id integer primary key generated always as identity, \
+  taskString TEXT, \
+  taskStatus BOOLEAN);";
 
     QUERY(createUser,
         "INSERT INTO users (username, email, role) VALUES (:username, :email, :role);",
@@ -25,6 +35,8 @@ public:
   QUERY(getUserByName, 
         "SELECT * FROM users WHERE username=:username;", 
         PARAM(oatpp::String, username)) 
+
+  QUERY(init, initString)
 };
 
 #include OATPP_CODEGEN_END(DbClient) ///< End code-gen section

@@ -4,7 +4,7 @@
 #include "db/MyClient.hpp"
 #include "oatpp/orm/DbClient.hpp"
 #include "oatpp-1.4.0/oatpp-postgresql/oatpp-postgresql/orm.hpp"
-
+#include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
 #include "oatpp/json/ObjectMapper.hpp"
 #include <memory>
 #include <oatpp-postgresql/Connection.hpp>
@@ -84,7 +84,13 @@ public:
    */
   OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([] {
     OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router); // get Router component
-    return oatpp::web::server::HttpConnectionHandler::createShared(router);
+    auto connectionHandler = oatpp::web::server::HttpConnectionHandler::createShared(router);
+
+    connectionHandler->addRequestInterceptor(std::make_shared<oatpp::web::server::interceptor::AllowOptionsGlobal>());
+    connectionHandler->addResponseInterceptor(std::make_shared<oatpp::web::server::interceptor::AllowCorsGlobal>());
+
+
+    return connectionHandler;
   }());
 
   /**

@@ -1,5 +1,8 @@
 #include <cstdio>
+#include <unordered_set>
+#include <stdexcept>
 #include <cstdlib>
+#include "dto/DTOs.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -74,8 +77,15 @@ namespace taskMod {
         {
         // constructor
         std::string clean_title = sanitizeText(m_title, '_');
+        if (m_db) {
+            m_db->init();
+            std::cout << "Loading data from DB" << std::endl;
+            loadFileDB();
+        }
+
         m_dataFileName = clean_title + ".csv";
-        if (m_db &&
+
+        if (!m_db &&
             is_file_exist(m_dataFileName) &&
             !m_isFileLoadedOnce){
             // only load once for the lifecycle of the app
@@ -85,12 +95,13 @@ namespace taskMod {
             updateIndex();
             std::cout << "Loaded data..." << std::endl;
         }
+        // track ids
+        populateIds();
     }
 
     Todo::~Todo(){
         std::cout << "writing to file "<< m_dataFileName << std::endl;
         saveFile();
-
     }
 
     std::string Todo::sanitizeText(
@@ -182,6 +193,21 @@ namespace taskMod {
         std::cout << "Saved successfully!" << std::endl;
     }
 
+    void Todo::loadFileDB(){
+        if (!m_db) return;
+        auto tasks = m_db->getTasks();
+        auto tasksList = tasks->fetch<oatpp::Vector<oatpp::Object<TaskDbDTO>>>();
+        if (tasksList) {
+            for (const auto& task : *tasksList) {
+                // Safe extraction checking for nulls
+                int id = task->id ? *task->id : 0;
+                std::string taskStr = task->taskstring ? *task->taskstring : "";
+                bool status = task->taskstatus ? *task->taskstatus : false;
+                addTask(id, taskStr, status);
+            }
+        }
+    }
+
     void Todo::loadFile(){
         std::string taskDataLine;
 
@@ -227,7 +253,7 @@ namespace taskMod {
     }
 
     void Todo::editTask(int task_ix){
-        Task& task = getTaskByIndex(task_ix);
+        Task& task = getTaskById(task_ix);
         std::cout << "Current Task: " << task.print() << std::endl;
         std::cout << "Enter new task (or press Enter to keep current): ";
         std::string new_task;
@@ -250,22 +276,28 @@ namespace taskMod {
         std::cout << "------" << std::endl;
     }
 
-    void Todo::toggleItemStatus(int itemIx){
-        Task& task = getTaskByIndex(itemIx);
+    bool Todo::toggleItemStatus(int itemIx){
+        Task& task = getTaskById(itemIx);
         task.toggleStatus();
         std::cout << "Toggling item of index " << itemIx <<"'s status" << std::endl;
+        return task.getTaskStatus();
     }
 
-    Task& Todo::getTaskByIndex(int index){
-        Task task = m_tasks[0];
-        if (index < 0 || index >= m_tasks.size()) {
-            throw std::out_of_range("Index out of bounds");
+    Task& Todo::getTaskById(int id) {
+        for (auto& task : m_tasks) {
+            if (task.getId() == id) {
+                return task; // Returns reference directly to the element inside m_tasks
+            }
         }
-        return m_tasks[index];
+        throw std::out_of_range("Task with specified ID not found");
     }
 
-    int Todo::sizeOfList(){
-      return m_tasks.size();
+    void Todo::populateIds(){
+        m_ids.clear();
+        for (const auto& task : m_tasks) {
+            m_ids.insert(task.getId());
+        }
+
     }
 
     void Todo::runTaskApp(){
@@ -274,6 +306,7 @@ namespace taskMod {
             std::cout << "Loading data..." << std::endl;
             loadFile();
             m_isFileLoadedOnce = true; // don't load again
+            populateIds();
             updateIndex();
             // std::cout << longString << std::endl;
             getItems();
@@ -299,15 +332,31 @@ namespace taskMod {
         bool status
         ){
         if (task_index >= 0)  {
-            Task& task = getTaskByIndex(task_index);
+            Task& task = getTaskById(task_index);
             if (!new_task.empty()) {
                     task.editTaskText(new_task);
-            }
+           }
             task.editTaskStatus(status);
+        }
+        if (m_db && checkIfTaskExistsDb(task_index)){
+            m_db->editTaskStringById(task_index, new_task);
+            m_db->editTaskStatusById(task_index, status);
         }
     };
 
     void Todo::addTaskApi(std::string &task, bool status){
+        if (m_db){
+            auto dbResult = m_db->createTask(task, status); // returns new entry
+            auto taskList = dbResult->fetch<oatpp::Vector<oatpp::Object<TaskDbDTO>>>();
+            if (taskList && !taskList->empty()) {
+                auto newTask = taskList->at(0);
+                int newId = newTask->id ? *newTask->id : m_autoID;
+                // Pass the newId back to your local state
+                addTask(newId, task, status);
+                m_ids.insert(newId); // Keep m_ids in sync
+            }
+            return;
+        };
         addTask(m_autoID, task, status);
         m_autoID++; // increment auto id
         updateIndex();
@@ -324,19 +373,49 @@ namespace taskMod {
         }
     }
 
+    bool Todo::checkIfTaskExistsDb(int task_id){
+        if (m_db){
+            auto dbResult = m_db->getTaskById(task_id);
+            auto taskList = dbResult->fetch<oatpp::Vector<oatpp::Object<TaskDbDTO>>>();
+            if (taskList && !taskList->empty()) {
+                return true;
+            } else {
+                return false;
+            };
+        };
+     return false;
+    };
+
     void Todo::removeTaskApi(int task_index){
-        m_tasks.erase(m_tasks.begin() + task_index);
+        if (m_db && checkIfTaskExistsDb(task_index) ){
+            m_db->deleteTask(task_index);
+        };
+        // erase from m_tasks vector
+        for (auto it = m_tasks.begin(); it != m_tasks.end(); ++it) {
+            if (it->getId() == task_index) {
+                m_tasks.erase(it);
+                return;
+            }
+        }
+        m_ids.erase(task_index);
         updateIndex();
     };
 
+    bool Todo::hasId(int id) const {
+        return m_ids.count(id) > 0; // Returns true if ID exists
+    }
+
     void Todo::toggleTaskApi(int task_index){
-        toggleItemStatus(task_index);
+        bool status = toggleItemStatus(task_index);
+        if (m_db && checkIfTaskExistsDb(task_index)){
+            m_db->editTaskStatusById(task_index, status);
+        }
     };
 
     std::vector<Task> Todo::viewTasks(int task_index){
         std::vector<Task> single_task;
         if (task_index >= 0){
-            Task& task = getTaskByIndex(task_index);
+            Task& task = getTaskById(task_index);
             std::string taskString = task.getTask();
             single_task.push_back(Task(task.getId(), taskString, task.getTaskStatus()));
             return single_task;
@@ -350,7 +429,12 @@ namespace taskMod {
         printf("Enter the index number for the task to be removed: ");
         std::cin >> index;
         std::cout << "The task of id: " << index << " shall be removed." << std::endl;
-        m_tasks.erase(m_tasks.begin() + index);
+        for (auto it = m_tasks.begin(); it != m_tasks.end(); ++it) {
+            if (it->getId() == index) {
+                m_tasks.erase(it);
+                return;
+            }
+        }
     }
 
     void Todo::toggleTaskRequest() {
@@ -362,6 +446,10 @@ namespace taskMod {
     }
 
     void Todo::updateIndex(){
+        // if db is being used, do nothing
+        if (m_db){
+            return;
+        };
         // if task list is empty do nothing
         if (m_tasks.size() == 0){
           return;

@@ -31,6 +31,16 @@ class TaskDTO : public oatpp::DTO {
     DTO_FIELD(Boolean, taskStatus); // if the task is complete
 };
 
+/** A Single Task from the DB **/
+class TaskDbDTO : public oatpp::DTO {
+
+    DTO_INIT(TaskDbDTO, DTO /* Extends */)
+
+    DTO_FIELD(Int32, id);     // Task id
+    DTO_FIELD(String, taskstring);     // the task string
+    DTO_FIELD(Boolean, taskstatus); // if the task is complete
+};
+
 /** All Tasks **/
 class TasksDTO : public oatpp::DTO {
 

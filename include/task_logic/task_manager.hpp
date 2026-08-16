@@ -35,12 +35,17 @@ namespace taskMod {
   // the whole list of tasks blueprint
   class Todo{
     private:
+      std::unordered_set<int> m_ids; // Tracks active task IDs in O(1) time
       std::shared_ptr<db::MyClient> m_db;
       static int m_autoID;
       std::vector<Task> m_tasks;
       void giveOrder();
       void saveFile();
+      // load data from file
       void loadFile();
+      // load data from db
+      void loadFileDB();
+      bool checkIfTaskExistsDb(int task_id);
       bool is_file_exist(std::string &fileName);
       std::string sanitizeText(
               std::string &original_text,
@@ -50,9 +55,10 @@ namespace taskMod {
 
     public:
       bool m_isFileLoadedOnce;
+      bool hasId(int id) const;
       std::string m_dataFileName;
       std::string m_title;
-    // Default m_db to nullptr for CLI testing mode
+      // Default m_db to nullptr for CLI testing mode
       explicit Todo(
         std::string new_title,
         std::shared_ptr<db::MyClient> db= nullptr
@@ -62,9 +68,9 @@ namespace taskMod {
       void addTask( int id, std::string &task, bool status );
       void editTask(int task_ix);
       void getItems();
-      int sizeOfList();
-      void toggleItemStatus(int itemIx);
-      Task& getTaskByIndex(int index);
+      void populateIds();
+      bool toggleItemStatus(int itemIx);
+      Task& getTaskById(int index);
       // CLI mode: What the user wants todo?
       void addTaskRequest();
       void editTaskRequest();

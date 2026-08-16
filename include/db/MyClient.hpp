@@ -14,28 +14,51 @@ public:
   MyClient(const std::shared_ptr<oatpp::orm::Executor>& executor)
     : oatpp::orm::DbClient(executor)
   {}
-    const char *initString =
- "CREATE TABLE IF NOT EXISTS users ( \
-  id integer primary key generated always as identity, \
-  username VARCHAR (30), \
-  email VARCHAR(100),\
-  role VARCHAR(20));\
-CREATE TABLE IF NOT EXISTS todo ( \
-  id integer primary key generated always as identity, \
-  taskString TEXT, \
-  taskStatus BOOLEAN);";
+    const char *todoTableInit = R"(
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        taskString TEXT,
+        taskStatus BOOLEAN DEFAULT FALSE
+    );
+    )";
 
-    QUERY(createUser,
-        "INSERT INTO users (username, email, role) VALUES (:username, :email, :role);",
-        PARAM(oatpp::String, username), 
-        PARAM(oatpp::String, email), 
-        PARAM(oatpp::String, role))
+    QUERY(init, todoTableInit);
 
-  QUERY(getUserByName, 
-        "SELECT * FROM users WHERE username=:username;", 
-        PARAM(oatpp::String, username)) 
+    QUERY(createTask,
+          "INSERT INTO tasks (taskstring, taskstatus) "
+          "VALUES (:task, :status) "
+          "RETURNING id, taskstring, taskstatus;",
+          PREPARE(false),
+          PARAM(oatpp::String, task),
+          PARAM(oatpp::Boolean, status))
 
-  QUERY(init, initString)
+    QUERY(deleteTask,
+          "DELETE FROM tasks "
+          "WHERE id=:id;",
+          PREPARE(false),
+          PARAM(oatpp::Int16, id))
+
+    QUERY(editTaskStringById, 
+          "UPDATE tasks "
+          "SET taskstring=:task "
+          "WHERE id=:id;",
+          PARAM(oatpp::Int64, id),
+          PARAM(oatpp::String, task))
+
+    QUERY(editTaskStatusById, 
+          "UPDATE tasks "
+          "SET taskstatus=:status "
+          "WHERE id=:id;",
+          PARAM(oatpp::Int64, id),
+          PARAM(oatpp::Boolean, status))
+
+    QUERY(getTaskById, 
+          "SELECT * FROM tasks WHERE id=:id;",
+          PARAM(oatpp::Int64, id)) 
+
+    QUERY(getTasks,
+          "SELECT * FROM tasks;")
+
 };
 
 #include OATPP_CODEGEN_END(DbClient) ///< End code-gen section

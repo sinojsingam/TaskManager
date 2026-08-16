@@ -48,9 +48,7 @@ public:
     auto dto = MessageDto::createShared();
     dto->statusCode = 200;
     dto->message = "Hello World!";
-    client->init();
-    // client->createUser("admin", "admin@domain.com", "ADMIN");
-    // auto result = client->getUserByName("admin");
+    // auto result = client->getTasks();
     // auto dataset = result->fetch<oatpp::Vector<oatpp::Fields<oatpp::Any>>>();
 
     /* And we can easily serialize result as a json string using json object mapper */
@@ -65,7 +63,7 @@ public:
   ENDPOINT("GET", "/tasks", tasks) {
     auto dto = TasksDTO::createShared();
     dto->statusCode = 200;
-    dto->message = "Your tasks!";
+    dto->message = "Your tasks lists";
     dto->tasks = oatpp::Vector<oatpp::Object<TaskDTO>>::createShared();
 
     for (const auto& task : todo->viewTasks(-1)) {
@@ -85,7 +83,7 @@ public:
     auto dto = MessageDto::createShared();
     dto->statusCode = 200;
     dto->message = "Deleted task successfully";
-    if (id < todo->sizeOfList()) {
+    if (todo->hasId(id)) {
         todo->removeTaskApi(id);
       return createDtoResponse(Status::CODE_200, dto);
     }
@@ -100,7 +98,7 @@ public:
     dto->statusCode = 200;
     dto->message = "Toggled task successfully";
 
-    if (id < todo->sizeOfList()) {
+    if (todo->hasId(id)) {
         todo->toggleTaskApi(id);
         return createDtoResponse(Status::CODE_200, dto);
     }
@@ -116,7 +114,7 @@ public:
       return errorDto("taskString or taskStatus must be provided");
     }
 
-    if (id > todo->sizeOfList()) {
+    if (!todo->hasId(id)) {
         return errorDto("Id Out of bounds");
     }
 
@@ -149,7 +147,7 @@ public:
   ENDPOINT("GET", "/tasks/{id}", getTaskById, PATH(Int32, id)) {
     auto dto = TaskDTO::createShared();
 
-    if (id < todo->sizeOfList()) {
+    if (todo->hasId(id)) {
         std::vector<taskMod::Task> taskVector = todo->viewTasks(id);
         taskMod::Task task = taskVector[0];
         dto->statusCode = 200;

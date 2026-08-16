@@ -1,6 +1,7 @@
 #ifndef AppComponent_hpp
 #define AppComponent_hpp
 
+#include "oatpp/web/server/interceptor/ResponseInterceptor.hpp"
 #include "db/MyClient.hpp"
 #include "oatpp/orm/DbClient.hpp"
 #include "oatpp-1.4.0/oatpp-postgresql/oatpp-postgresql/orm.hpp"
@@ -50,6 +51,21 @@ std::string getDBParams() {
     };
 };
 
+class CustomCorsInterceptor : public oatpp::web::server::interceptor::ResponseInterceptor {
+public:
+  std::shared_ptr<OutgoingResponse> intercept(
+    const std::shared_ptr<IncomingRequest>& request,
+    const std::shared_ptr<OutgoingResponse>& response) override {
+    
+    response->putHeader("Access-Control-Allow-Origin", "*");
+    response->putHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    response->putHeader("Access-Control-Allow-Headers", "DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range, Authorization");
+    response->putHeader("Access-Control-Max-Age", "1728000");
+    
+    return response;
+  }
+};
+
 class AppComponent {
 public:
 
@@ -85,10 +101,12 @@ public:
   OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([] {
     OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router); // get Router component
     auto connectionHandler = oatpp::web::server::HttpConnectionHandler::createShared(router);
-
-    connectionHandler->addRequestInterceptor(std::make_shared<oatpp::web::server::interceptor::AllowOptionsGlobal>());
-    connectionHandler->addResponseInterceptor(std::make_shared<oatpp::web::server::interceptor::AllowCorsGlobal>());
-
+  connectionHandler->addRequestInterceptor(
+  std::make_shared<oatpp::web::server::interceptor::AllowOptionsGlobal>()
+  );
+  connectionHandler->addResponseInterceptor(
+  std::make_shared<CustomCorsInterceptor>()
+);
 
     return connectionHandler;
   }());

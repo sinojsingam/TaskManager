@@ -6,12 +6,18 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <memory>
 #include "task_logic/task_manager.hpp"
+#include "db/MyClient.hpp"
 
 
 namespace taskMod {
 
-    Task::Task(int aTaskId, std::string &aTask, bool aStatus){
+    Task::Task(
+        int aTaskId,
+        std::string &aTask,
+        bool aStatus
+    ){
         m_task = aTask;
         m_task_id = aTaskId;
         m_status = aStatus;
@@ -59,13 +65,19 @@ namespace taskMod {
         return std::to_string(m_task_id) + ": " + m_task + ": " + status_text + '\n';
     }
 
-    Todo::Todo(std::string new_title, bool use_db){
+    Todo::Todo(
+        std::string new_title,
+        std::shared_ptr<db::MyClient> db
+        ):  m_title(std::move(new_title)),
+            m_db(std::move(db)),
+            m_isFileLoadedOnce(false)
+        {
         // constructor
-        m_title = new_title;
         std::string clean_title = sanitizeText(m_title, '_');
         m_dataFileName = clean_title + ".csv";
-        m_isFileLoadedOnce = false;
-        if (is_file_exist(m_dataFileName) && !m_isFileLoadedOnce){
+        if (m_db &&
+            is_file_exist(m_dataFileName) &&
+            !m_isFileLoadedOnce){
             // only load once for the lifecycle of the app
             std::cout << "Loading data from "<< m_dataFileName << std::endl;
             loadFile();

@@ -2,6 +2,11 @@
 #include <string>
 #include <vector>
 #include <set>
+#include "db/MyClient.hpp"
+
+namespace db {
+    class MyClient;
+}
 
 namespace taskMod {
   // each individual task blueprint
@@ -11,7 +16,11 @@ namespace taskMod {
       std::string m_task;
       bool m_status;
     public:
-      Task(int aTaskId, std::string &aTask, bool aStatus);
+      Task(
+          int aTaskId,
+          std::string &aTask,
+          bool aStatus
+      );
       void updateIndex(int new_index);
       int getId() const;
       const std::string& getTask() const;
@@ -26,9 +35,9 @@ namespace taskMod {
   // the whole list of tasks blueprint
   class Todo{
     private:
+      std::shared_ptr<db::MyClient> m_db;
       static int m_autoID;
       std::vector<Task> m_tasks;
-      bool m_use_db;
       void giveOrder();
       void saveFile();
       void loadFile();
@@ -43,7 +52,11 @@ namespace taskMod {
       bool m_isFileLoadedOnce;
       std::string m_dataFileName;
       std::string m_title;
-      Todo(std::string new_title, bool use_db=false);
+    // Default m_db to nullptr for CLI testing mode
+      explicit Todo(
+        std::string new_title,
+        std::shared_ptr<db::MyClient> db= nullptr
+      );
       ~Todo();
       // Task class control
       void addTask( int id, std::string &task, bool status );

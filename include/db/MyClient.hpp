@@ -1,6 +1,5 @@
 #pragma once
 
-#include "oatpp/orm/SchemaMigration.hpp"
 #include "oatpp/orm/DbClient.hpp"
 #include "oatpp/macro/codegen.hpp"
 

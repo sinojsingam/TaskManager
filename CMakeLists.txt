@@ -45,6 +45,13 @@ target_link_libraries(cliMod PRIVATE
 	oatpp::oatpp-postgresql
 )
 
+target_link_libraries(taskMod PRIVATE
+    cliMod
+	apiMod
+	oatpp::oatpp
+	oatpp::oatpp-postgresql
+)
+
 add_executable(TaskManager src/main.cpp)
 
 target_link_libraries(TaskManager 

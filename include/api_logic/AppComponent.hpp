@@ -53,11 +53,6 @@ std::string getDBParams() {
 class AppComponent {
 public:
 
-  OATPP_CREATE_COMPONENT(std::shared_ptr<taskMod::Todo>, todoList)([] {
-    auto todo_list = std::make_shared<taskMod::Todo>("todo list");
-    return todo_list;
-  }());
-
   OATPP_CREATE_COMPONENT(std::shared_ptr<ServerConfig>, serverConfig)([] {
     auto cfg = std::make_shared<ServerConfig>();
     cfg->host = "0.0.0.0";
@@ -124,6 +119,12 @@ public:
 
   }());
 
+  OATPP_CREATE_COMPONENT(std::shared_ptr<taskMod::Todo>, todoList)([] {
+    OATPP_COMPONENT(std::shared_ptr<db::MyClient>, client);
+    // pass db client to task manager class
+    auto todo_list = std::make_shared<taskMod::Todo>("todo list", client);
+    return todo_list;
+  }());
 
 };
 
